@@ -7,7 +7,6 @@ import (
 	"time"
     "github.com/google/uuid"
     "strings"
-
 )
 
 type Pessoa struct {
@@ -130,14 +129,16 @@ func pessoasSearchHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    termo = strings.ToLower(termo)
+
     var resultados []Pessoa
     for _, pessoa := range Database {
-        if strings.Contains(pessoa.Apelido, termo) || strings.Contains(pessoa.Nome, termo) {
+        if strings.Contains(strings.ToLower(pessoa.Apelido), termo) || strings.Contains(strings.ToLower(pessoa.Nome), termo) {
             resultados = append(resultados, pessoa)
             continue
         }
         for _, stack := range pessoa.Stack {
-            if strings.Contains(stack, termo) {
+            if strings.Contains(strings.ToLower(stack), termo) {
                 resultados = append(resultados, pessoa)
                 break
             }
@@ -149,7 +150,4 @@ func pessoasSearchHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     json.NewEncoder(w).Encode(resultados)
-    
-
 }
-
