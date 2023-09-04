@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	_ "github.com/lib/pq"
 )
 
@@ -31,8 +32,24 @@ func InitDB() {
 		panic(err)
 	}
 
-	fmt.Println("Successfully connected to the database!")
+	log.Println("Successfully connected to the database!")
 }
+
+func InitSchema() {
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS pessoas (
+			id UUID PRIMARY KEY,
+			apelido TEXT NOT NULL,
+			nome TEXT NOT NULL,
+			nascimento TEXT NOT NULL,
+			stack TEXT[] NOT NULL
+		)
+	`)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 
 func GetDB() *sql.DB {
 	return db

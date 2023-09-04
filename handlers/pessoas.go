@@ -1,16 +1,15 @@
 package handlers
 
-
 import (
-    "encoding/json"
-    "net/http"
-    "time"
-    "github.com/google/uuid"
-    "strings"
-    "github.com/SagHuns/Rinha-de-Backend-GO/models"
-)
+	"database/sql"
+	"encoding/json"
+	"net/http"
+	"strings"
+	"time"
 
-var Database []models.Pessoa
+	"github.com/SagHuns/Rinha-de-Backend-GO/models"
+	"github.com/google/uuid"
+)
 
 func PessoasHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method == http.MethodGet {
@@ -39,14 +38,6 @@ func PessoasPostHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    for _, pessoa := range Database {
-        if pessoa.Apelido == PessoaJson.Apelido {
-            w.WriteHeader(http.StatusBadRequest)
-            w.Write([]byte("Apelido já existe!"))
-            return
-        }
-    }
-
     if PessoaJson.Nome == "" {
         w.WriteHeader(http.StatusUnprocessableEntity)
         w.Write([]byte("Digite um Nome não nulo!"))
@@ -66,10 +57,15 @@ func PessoasPostHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    id := uuid.New()
+    id, err := models.Create(PessoaJson)
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        w.Write([]byte("Erro ao criar pessoa"))
+        return
+    }
+
     url := "/pessoas/" + id.String()
     PessoaJson.Id = id
-    Database = append(Database, PessoaJson)
 
     w.Header().Set("Location", url)
 
@@ -77,6 +73,7 @@ func PessoasPostHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(PessoaJson)
 
 }
+
 
 func PessoasGetHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method == http.MethodGet {
@@ -88,14 +85,16 @@ func PessoasGetHandler(w http.ResponseWriter, r *http.Request) {
             return
         }
 
-        for _, pessoa := range Database {
-            if pessoa.Id == id {
-                json.NewEncoder(w).Encode(pessoa)
-                return
-            }
+        pessoa, err := models.Get(id)
+        if err != sql.ErrNoRows {
+            w.WriteHeader(http.StatusNotFound)
+            w.Write([]byte("Pessoa não encontrada"))
+        } else if err != nil {
+            w.WriteHeader(http.StatusInternalServerError)
         }
 
-        w.Write([]byte("Pessoa not found"))
+        json.NewEncoder(w).Encode(Pessoa)
+
     } else {
         w.WriteHeader(http.StatusNotFound)
     }
@@ -111,18 +110,11 @@ func PessoasSearchHandler(w http.ResponseWriter, r *http.Request) {
 
     termo = strings.ToLower(termo)
 
-    var resultados []models.Pessoa
-    for _, pessoa := range Database {
-        if strings.Contains(strings.ToLower(pessoa.Apelido), termo) || strings.Contains(strings.ToLower(pessoa.Nome), termo) {
-            resultados = append(resultados, pessoa)
-            continue
-        }
-        for _, stack := range pessoa.Stack {
-            if strings.Contains(strings.ToLower(stack), termo) {
-                resultados = append(resultados, pessoa)
-                break
-            }
-        }
+    resultados, err := models.SearchPessoas(termo)
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        w.Write([]byte("Erro ao buscar pessoas"))
+        return
     }
 
     if len(resultados) > 50 {
@@ -132,9 +124,15 @@ func PessoasSearchHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(resultados)
 }
 
+
 func PessoasContagemHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method == http.MethodGet {
-        var contagem int = len(Database)
+        contagem, err := models.ContadorPessoas()
+        if err != nil {
+            w.WriteHeader(http.StatusInternalServerError)
+            return
+        }
+
         json.NewEncoder(w).Encode(contagem)
 
     } else {
