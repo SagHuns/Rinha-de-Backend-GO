@@ -131,3 +131,13 @@ func PessoasSearchHandler(w http.ResponseWriter, r *http.Request) {
 
     json.NewEncoder(w).Encode(resultados)
 }
+
+func PessoasContagemHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method == http.MethodGet {
+        var contagem int = len(Database)
+        json.NewEncoder(w).Encode(contagem)
+
+    } else {
+        w.WriteHeader(http.StatusNotFound)
+    }
+}
