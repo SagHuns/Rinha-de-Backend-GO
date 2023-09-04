@@ -111,7 +111,7 @@ func PessoasSearchHandler(w http.ResponseWriter, r *http.Request) {
 
     termo = strings.ToLower(termo)
 
-    var resultados []Pessoa
+    var resultados []models.Pessoa
     for _, pessoa := range Database {
         if strings.Contains(strings.ToLower(pessoa.Apelido), termo) || strings.Contains(strings.ToLower(pessoa.Nome), termo) {
             resultados = append(resultados, pessoa)
