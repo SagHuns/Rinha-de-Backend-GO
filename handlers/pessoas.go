@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+    "log"
 
 	"github.com/SagHuns/Rinha-de-Backend-GO/models"
 	"github.com/google/uuid"
@@ -59,9 +60,15 @@ func PessoasPostHandler(w http.ResponseWriter, r *http.Request) {
 
     id, err := models.Create(PessoaJson)
     if err != nil {
-        w.WriteHeader(http.StatusInternalServerError)
-        w.Write([]byte("Erro ao criar pessoa"))
-        return
+        if err.Error() == "apelido já existe" {
+            w.WriteHeader(http.StatusUnprocessableEntity)
+            w.Write([]byte(err.Error()))
+            return
+        } else {
+            w.WriteHeader(http.StatusInternalServerError)
+            w.Write([]byte("Erro ao criar pessoa"))
+            return
+        }
     }
 
     url := "/pessoas/" + id.String()
@@ -86,14 +93,17 @@ func PessoasGetHandler(w http.ResponseWriter, r *http.Request) {
         }
 
         pessoa, err := models.Get(id)
-        if err != sql.ErrNoRows {
+        log.Println(err)
+        if err == sql.ErrNoRows {
             w.WriteHeader(http.StatusNotFound)
             w.Write([]byte("Pessoa não encontrada"))
+            return
         } else if err != nil {
             w.WriteHeader(http.StatusInternalServerError)
+            return
         }
 
-        json.NewEncoder(w).Encode(Pessoa)
+        json.NewEncoder(w).Encode(pessoa)
 
     } else {
         w.WriteHeader(http.StatusNotFound)

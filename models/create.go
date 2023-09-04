@@ -1,21 +1,35 @@
 package models
 
-import(
+import (
+	"errors"
+	"log"
+
 	"github.com/SagHuns/Rinha-de-Backend-GO/db"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func Create(pessoa Pessoa) (id uuid.UUID, err error) {
 	id = uuid.New()
 	
-	// Primeiro passo é tentar abrir uma conexão com o banco de dados
 	conn := db.GetDB()
  
-	// Fecha o DB quando a operação encerrar
-	defer conn.Close()
-	
-	sql := `INSERT INTO pessoas (id, apelido, nome, nascimento, stack) VALUES ($1, $2, $3, $4, $5)`
+	// Checar se apelido ja existe
+	var count int
+	err = conn.QueryRow("SELECT COUNT(*) FROM pessoas WHERE apelido = $1", pessoa.Apelido).Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if count > 0 {
+		err = errors.New("apelido já existe")
+		return
+	}
 
-	_, err = conn.Exec(sql, id.String(), pessoa.Apelido, pessoa.Nome, pessoa.Nascimento, pessoa.Stack)
+	sql := `INSERT INTO pessoas (id, apelido, nome, nascimento, stack) VALUES ($1, $2, $3, $4, $5)`
+	// pq.Array() é para converter no formato que o postgres armazena os arrays.
+	_, err = conn.Exec(sql, id.String(), pessoa.Apelido, pessoa.Nome, pessoa.Nascimento, pq.Array(pessoa.Stack))
+	if err != nil {
+		log.Fatal(err)
+	}
 	return
 }
