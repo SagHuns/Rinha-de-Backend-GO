@@ -4,22 +4,37 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	_ "github.com/lib/pq"
-)
+	"os"
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "videocoding"
-	dbname   = "rinha"
+	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
 
 func InitDB() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+	dbPort := os.Getenv("DB_PORT")
+	if dbPort == "" {
+		dbPort = "5432"
+	}
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "postgres"
+	}
+	dbPassword := os.Getenv("DB_PASSWORD")
+	if dbPassword == "" {
+		dbPassword = "videocoding"
+	}
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "rinha"
+	}
+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		dbHost, dbPort, dbUser, dbPassword, dbName)
 
 	var err error
 	db, err = sql.Open("postgres", psqlInfo)
@@ -49,7 +64,6 @@ func InitSchema() {
 		log.Fatal(err)
 	}
 }
-
 
 func GetDB() *sql.DB {
 	return db
