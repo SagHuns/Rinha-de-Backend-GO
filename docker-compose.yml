@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   app:
+    image: rinha:latest
     build: .
     ports:
       - "8080:8080"
@@ -9,14 +10,14 @@ services:
     environment:
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=videocoding
+      - DB_USER=adm
+      - DB_PASSWORD=123456
       - DB_NAME=rinha
   db:
     image: postgres:16rc1-alpine
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=videocoding
+      - POSTGRES_USER=adm
+      - POSTGRES_PASSWORD=123456
       - POSTGRES_DB=rinha

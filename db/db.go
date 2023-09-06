@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -44,7 +45,8 @@ func InitDB() {
 
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		log.Println("Failed to ping the database. Retrying...")
+		time.Sleep(5 * time.Second)
 	}
 
 	log.Println("Successfully connected to the database!")
