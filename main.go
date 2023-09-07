@@ -11,7 +11,7 @@ import (
 func main() {
     db.InitDB()
     db.InitSchema()
-    PORT := ":8080"
+    PORT := ":9999"
     log.Print("Server initialized at port ", PORT)
     http.HandleFunc("/pessoas", handlers.Pessoas)
     http.HandleFunc("/pessoas/", handlers.Get)

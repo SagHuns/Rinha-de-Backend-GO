@@ -9,7 +9,7 @@ COPY . .
 
 RUN go build -o /app/main .
 
-EXPOSE 8080
+EXPOSE 9999
 EXPOSE 5432
 
 CMD ["/app/main"]
