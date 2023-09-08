@@ -1,16 +1,15 @@
 package db
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"os"
-	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-var db *sql.DB
+var db *pgxpool.Pool
 
 func InitDB() {
 	dbHost := os.Getenv("DB_HOST")
@@ -38,22 +37,23 @@ func InitDB() {
 		dbHost, dbPort, dbUser, dbPassword, dbName)
 
 	var err error
-	db, err = sql.Open("postgres", psqlInfo)
+	db, err = pgxpool.Connect(context.Background(), psqlInfo)
 	if err != nil {
 		panic(err)
 	}
 
-	err = db.Ping()
-	if err != nil {
-		log.Println("Failed to ping the database. Retrying...")
-		time.Sleep(5 * time.Second)
-	}
-
 	log.Println("Successfully connected to the database!")
+	InitRedis()  // Depois de conectar com o banco de dados, inicializar o Redis
 }
 
 func InitSchema() {
-	_, err := db.Exec(`
+	conn, err := db.Acquire(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Release()
+
+	_, err = conn.Exec(context.Background(), `
 		CREATE TABLE IF NOT EXISTS pessoas (
 			id UUID PRIMARY KEY,
 			apelido TEXT NOT NULL,
@@ -67,6 +67,6 @@ func InitSchema() {
 	}
 }
 
-func GetDB() *sql.DB {
+func GetDB() *pgxpool.Pool {
 	return db
 }

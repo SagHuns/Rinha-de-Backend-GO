@@ -10,6 +10,7 @@ COPY . .
 RUN go build -o /app/main .
 
 EXPOSE 9999
+EXPOSE 6379
 EXPOSE 5432
 
 CMD ["/app/main"]

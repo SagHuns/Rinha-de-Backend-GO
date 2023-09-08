@@ -1,22 +1,28 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"log"
 
 	"github.com/SagHuns/Rinha-de-Backend-GO/db"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
+	"github.com/jackc/pgtype"
 )
 
 func Create(pessoa Pessoa) (id uuid.UUID, err error) {
 	id = uuid.New()
 	
-	conn := db.GetDB()
+	pool := db.GetDB()  // Criando um pgxpool para explorar o paralelismo no banco de dados
+	conn, err := pool.Acquire(context.Background())  // Criando uma conexão com o banco de dados
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Release()  // Fechando a conexão com o banco de dados quando a função terminar
  
 	// Checar se apelido ja existe
 	var count int
-	err = conn.QueryRow("SELECT COUNT(*) FROM pessoas WHERE apelido = $1", pessoa.Apelido).Scan(&count)
+	err = conn.QueryRow(context.Background(),"SELECT COUNT(*) FROM pessoas WHERE apelido = $1", pessoa.Apelido).Scan(&count)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,8 +32,10 @@ func Create(pessoa Pessoa) (id uuid.UUID, err error) {
 	}
 
 	sql := `INSERT INTO pessoas (id, apelido, nome, nascimento, stack) VALUES ($1, $2, $3, $4, $5)`
-	// pq.Array() é para converter no formato que o postgres armazena os arrays.
-	_, err = conn.Exec(sql, id.String(), pessoa.Apelido, pessoa.Nome, pessoa.Nascimento, pq.Array(pessoa.Stack))
+	stack := &pgtype.TextArray{}
+	stack.Set(pessoa.Stack)
+	
+	_, err = conn.Exec(context.Background(), sql, id.String(), pessoa.Apelido, pessoa.Nome, pessoa.Nascimento, stack)
 	if err != nil {
 		log.Fatal(err)
 	}
