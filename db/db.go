@@ -59,7 +59,7 @@ func InitSchema() {
 			apelido TEXT NOT NULL,
 			nome TEXT NOT NULL,
 			nascimento TEXT NOT NULL,
-			stack TEXT[] NOT NULL
+			stack TEXT[]
 		)
 	`)
 	if err != nil {

@@ -10,7 +10,7 @@ services:
     environment:
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_USER=adm
+      - DB_USER=administrador
       - DB_PASSWORD=123456
       - DB_NAME=rinha
   db:
@@ -18,6 +18,6 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=adm
+      - POSTGRES_USER=administrador
       - POSTGRES_PASSWORD=123456
       - POSTGRES_DB=rinha
