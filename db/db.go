@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -39,7 +40,10 @@ func InitDB() {
 	var err error
 	db, err = pgxpool.Connect(context.Background(), psqlInfo)
 	if err != nil {
-		panic(err)
+		// Try it again after 5 seconds
+		log.Println("Failed to connect to the database! Trying again in 5 seconds...")
+		time.Sleep(5 * time.Second)
+		InitDB()
 	}
 
 	log.Println("Successfully connected to the database!")
