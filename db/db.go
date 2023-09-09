@@ -56,16 +56,31 @@ func InitSchema() {
 		log.Fatal(err)
 	}
 	defer conn.Release()
-
+	
 	_, err = conn.Exec(context.Background(), `
-		CREATE TABLE IF NOT EXISTS pessoas (
-			id UUID PRIMARY KEY,
-			apelido TEXT NOT NULL,
-			nome TEXT NOT NULL,
-			nascimento TEXT NOT NULL,
-			stack TEXT[]
-		)
+	CREATE TABLE IF NOT EXISTS pessoas (
+		id UUID PRIMARY KEY,
+		apelido TEXT NOT NULL,
+		nome TEXT NOT NULL,
+		nascimento TEXT NOT NULL,
+		stack TEXT[]
+	)
 	`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Criar um index é semelhante ao sumário de um livro, onde você encontra a página correta de acordo 
+	// com o assunto e não precisa ficar passando folha por folha até encontrar a desejada.
+	//A indexação é particularmente útil para colunas que são frequentemente usadas em cláusulas 
+	// WHERE, JOIN, ORDER BY e GROUP BY
+
+	// Criando um index para a coluna apelido
+	_, err = conn.Exec(context.Background(), `
+	CREATE INDEX IF NOT EXISTS apelido_idx ON pessoas (apelido)
+	CREATE INDEX idx_gin_stack ON pessoas USING gin(stack);
+	`)
+
 	if err != nil {
 		log.Fatal(err)
 	}

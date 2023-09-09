@@ -21,6 +21,7 @@ func Create(pessoa Pessoa) (id uuid.UUID, err error) {
 	defer conn.Release()  // Fechando a conexão com o banco de dados quando a função terminar
  
 	// Checar se apelido ja existe
+	// Como eu implementei os indexes antes, não preciso alterar esse trecho de código
 	var count int
 	err = conn.QueryRow(context.Background(),"SELECT COUNT(*) FROM pessoas WHERE apelido = $1", pessoa.Apelido).Scan(&count)
 	if err != nil {
